@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Rejestracja pacjenta</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+    background: #f0f4f8;
+    color: #1a2332;
+    min-height: 100vh;
+    padding-bottom: 40px;
+  }
+
+  header {
+    background: #1a5276;
+    color: white;
+    padding: 18px 20px 14px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    border-bottom: 3px solid #2e86c1;
+  }
+
+  header h1 {
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+  }
+
+  header p {
+    font-size: 12px;
+    opacity: 0.7;
+    margin-top: 2px;
+  }
+
+  .form-body {
+    padding: 16px;
+    max-width: 520px;
+    margin: 0 auto;
+  }
+
+  .section {
+    background: white;
+    border-radius: 12px;
+    margin-bottom: 14px;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  }
+
+  .section-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #1a5276;
+    padding: 12px 16px 8px;
+    border-bottom: 1px solid #eaf0f6;
+  }
+
+  .field {
+    padding: 10px 16px;
+    border-bottom: 1px solid #f0f4f8;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .field:last-child { border-bottom: none; }
+
+  .field label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #5d7a9a;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .field input,
+  .field select {
+    font-size: 16px; /* zapobiega zoomowi na iOS */
+    border: none;
+    outline: none;
+    background: transparent;
+    color: #1a2332;
+    padding: 2px 0;
+    width: 100%;
+    -webkit-appearance: none;
+  }
+
+  .field select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%235d7a9a' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0 center;
+    padding-right: 20px;
+  }
+
+  .field input::placeholder { color: #b0bec5; }
+
+  .row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+  }
+
+  .row-2 .field:first-child {
+    border-right: 1px solid #f0f4f8;
+  }
+
+  button[type="submit"] {
+    display: block;
+    width: 100%;
+    padding: 16px;
+    background: #1a5276;
+    color: white;
+    font-size: 17px;
+    font-weight: 600;
+    border: none;
+    border-radius: 12px;
+    margin: 20px 0 12px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.15s;
+  }
+
+  button[type="submit"]:active { background: #154360; }
+
+  button#resetBtn {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    background: transparent;
+    color: #5d7a9a;
+    font-size: 15px;
+    border: 1.5px solid #c8d8e8;
+    border-radius: 12px;
+    cursor: pointer;
+  }
+
+  /* Ekran z kodem */
+  #result {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: #1a5276;
+    z-index: 100;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 24px;
+    text-align: center;
+  }
+
+  #result.show { display: flex; }
+
+  #result .label {
+    font-size: 13px;
+    color: rgba(255,255,255,0.6);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 16px;
+  }
+
+  #result .code {
+    font-size: 28px;
+    font-weight: 700;
+    color: white;
+    letter-spacing: 0.03em;
+    background: rgba(255,255,255,0.12);
+    padding: 20px 28px;
+    border-radius: 14px;
+    word-break: break-all;
+    line-height: 1.3;
+    margin-bottom: 12px;
+  }
+
+  #result .patient-name {
+    font-size: 16px;
+    color: rgba(255,255,255,0.75);
+    margin-bottom: 32px;
+  }
+
+  #result .hint {
+    font-size: 13px;
+    color: rgba(255,255,255,0.5);
+    margin-bottom: 32px;
+    line-height: 1.5;
+  }
+
+  #copyBtn {
+    background: white;
+    color: #1a5276;
+    font-size: 17px;
+    font-weight: 600;
+    border: none;
+    border-radius: 12px;
+    padding: 14px 40px;
+    cursor: pointer;
+    margin-bottom: 16px;
+    width: 100%;
+    max-width: 300px;
+  }
+
+  #newBtn {
+    background: transparent;
+    color: rgba(255,255,255,0.7);
+    font-size: 15px;
+    border: 1.5px solid rgba(255,255,255,0.3);
+    border-radius: 12px;
+    padding: 12px 40px;
+    cursor: pointer;
+    width: 100%;
+    max-width: 300px;
+  }
+
+  .status {
+    font-size: 12px;
+    color: #5d7a9a;
+    text-align: center;
+    padding: 8px;
+    min-height: 24px;
+  }
+
+  .status.error { color: #c0392b; }
+  .status.ok { color: #1a7a4a; }
+
+  /* ⚠️ Pole URL Apps Script — ukryte w produkcji, widoczne przy konfiguracji */
+  #gasUrlField {
+    background: #fffbea;
+    border: 1.5px dashed #f0c040;
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-bottom: 14px;
+    font-size: 13px;
+    color: #7a5c00;
+  }
+
+  #gasUrlField label {
+    display: block;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  #gasUrlField input {
+    width: 100%;
+    font-size: 13px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 6px 8px;
+    background: white;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Rejestracja pacjenta</h1>
+  <p>prof. dr hab. S. Dąbrowiecki</p>
+</header>
+
+<div class="form-body">
+
+  <!-- Konfiguracja URL — wypełnić raz po wdrożeniu Apps Script -->
+  <div id="gasUrlField">
+    <label>⚙️ URL Apps Script (wpisz raz i zapisz)</label>
+    <input type="url" id="gasUrl" placeholder="https://script.google.com/macros/s/..." autocomplete="off">
+  </div>
+
+  <form id="patientForm">
+
+    <div class="section">
+      <div class="section-title">Dane osobowe</div>
+      <div class="field">
+        <label>Imię</label>
+        <input type="text" name="imie" id="imie" placeholder="Jan" autocomplete="given-name" required>
+      </div>
+      <div class="field">
+        <label>Nazwisko</label>
+        <input type="text" name="nazwisko" id="nazwisko" placeholder="Kowalski" autocomplete="family-name" required>
+      </div>
+      <div class="field">
+        <label>PESEL</label>
+        <input type="tel" name="pesel" id="pesel" placeholder="00000000000" maxlength="11" inputmode="numeric">
+      </div>
+      <div class="row-2">
+        <div class="field">
+          <label>Data urodzenia</label>
+          <input type="date" name="data_ur" id="data_ur">
+        </div>
+        <div class="field">
+          <label>Płeć</label>
+          <select name="plec" id="plec">
+            <option value="">—</option>
+            <option value="Kobieta">Kobieta</option>
+            <option value="Mężczyzna">Mężczyzna</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label>Miejsce urodzenia</label>
+        <input type="text" name="miejsce_ur" id="miejsce_ur" placeholder="Bydgoszcz">
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Kontakt</div>
+      <div class="field">
+        <label>Telefon</label>
+        <input type="tel" name="telefon" id="telefon" placeholder="600 000 000" autocomplete="tel">
+      </div>
+      <div class="field">
+        <label>Adres e-mail</label>
+        <input type="email" name="email" id="email" placeholder="jan@example.com" autocomplete="email">
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Adres zamieszkania</div>
+      <div class="row-2">
+        <div class="field">
+          <label>Kod pocztowy</label>
+          <input type="text" name="kod" id="kod" placeholder="85-000" maxlength="6" inputmode="numeric">
+        </div>
+        <div class="field">
+          <label>Miejscowość</label>
+          <input type="text" name="miasto" id="miasto" placeholder="Bydgoszcz">
+        </div>
+      </div>
+      <div class="field">
+        <label>Ulica</label>
+        <input type="text" name="ulica" id="ulica" placeholder="ul. Główna">
+      </div>
+      <div class="row-2">
+        <div class="field">
+          <label>Nr domu</label>
+          <input type="text" name="nr_domu" id="nr_domu" placeholder="12">
+        </div>
+        <div class="field">
+          <label>Nr lokalu</label>
+          <input type="text" name="nr_lok" id="nr_lok" placeholder="5">
+        </div>
+      </div>
+    </div>
+
+    <div class="status" id="status"></div>
+
+    <button type="submit">Zapisz i generuj kod</button>
+    <button type="button" id="resetBtn">Wyczyść formularz</button>
+
+  </form>
+</div>
+
+<!-- Ekran z wynikiem -->
+<div id="result">
+  <div class="label">Kod identyfikacyjny wizyty</div>
+  <div class="code" id="codeDisplay"></div>
+  <div class="patient-name" id="patientName"></div>
+  <div class="hint">Użyj tego kodu jako nazwy zdjęcia notatki<br>i nagrania z konsultacji</div>
+  <button id="copyBtn">Kopiuj kod</button>
+  <button id="newBtn">Nowy pacjent</button>
+</div>
+
+<script>
+  // ── Zapamiętaj URL Apps Script między sesjami ──
+  const gasUrlInput = document.getElementById('gasUrl');
+  const savedUrl = localStorage.getItem('gasUrl') || '';
+  gasUrlInput.value = savedUrl;
+  gasUrlInput.addEventListener('change', () => {
+    localStorage.setItem('gasUrl', gasUrlInput.value.trim());
+  });
+
+  // ── Formatowanie kodu pocztowego XX-XXX ──
+  document.getElementById('kod').addEventListener('input', function() {
+    let v = this.value.replace(/\D/g, '');
+    if (v.length > 2) v = v.slice(0,2) + '-' + v.slice(2,5);
+    this.value = v;
+  });
+
+  // ── Generowanie kodu z kodu pocztowego → województwo ──
+  function kodToWoj(kod) {
+    if (!/^\d{2}-\d{3}$/.test(kod)) return null;
+    const p = parseInt(kod.substring(0,2));
+    if (p >= 50 && p <= 59) return "Dolnośląskie";
+    if (p >= 85 && p <= 89) return "Kujawsko-Pomorskie";
+    if (p >= 20 && p <= 24) return "Lubelskie";
+    if (p >= 65 && p <= 69) return "Lubuskie";
+    if (p >= 90 && p <= 99) return "Łódzkie";
+    if (p >= 30 && p <= 34) return "Małopolskie";
+    if (p >= 0  && p <= 9)  return "Mazowieckie";
+    if (p >= 45 && p <= 49) return "Opolskie";
+    if (p >= 35 && p <= 39) return "Podkarpackie";
+    if (p >= 15 && p <= 19) return "Podlaskie";
+    if (p >= 80 && p <= 84) return "Pomorskie";
+    if (p >= 40 && p <= 44) return "Śląskie";
+    if (p >= 25 && p <= 29) return "Świętokrzyskie";
+    if (p >= 10 && p <= 14) return "Warmińsko-Mazurskie";
+    if (p >= 60 && p <= 64) return "Wielkopolskie";
+    if (p >= 70 && p <= 78) return "Zachodniopomorskie";
+    return null;
+  }
+
+  // ── Generowanie kodu identyfikacyjnego ──
+  function generateCode(nazwisko, imie) {
+    const now = new Date();
+    const dd   = String(now.getDate()).padStart(2,'0');
+    const mm   = String(now.getMonth()+1).padStart(2,'0');
+    const yyyy = now.getFullYear();
+    const naz  = nazwisko.toUpperCase()
+                  .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+                  .replace(/[^A-Z]/g,'');
+    const im   = imie.charAt(0).toUpperCase()
+                  .normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    return `${naz}_${im}_${yyyy}${mm}${dd}`;
+  }
+
+  // ── Wysyłanie do Google Sheets ──
+  function sendToSheets(data, code) {
+    const url = localStorage.getItem('gasUrl');
+    if (!url || !url.startsWith('https://script.google.com')) {
+      setStatus('⚠️ Brak URL Apps Script — dane nie zostały zapisane do arkusza.', 'error');
+      showResult(code, data.imie + ' ' + data.nazwisko);
+      return;
+    }
+
+    setStatus('Zapisywanie...', '');
+
+    const params = new URLSearchParams({ ...data, kod_wizyty: code });
+
+    fetch(url + '?' + params.toString())
+      .then(r => r.json())
+      .then(resp => {
+        if (resp.status === 'ok') {
+          setStatus('✓ Zapisano w arkuszu.', 'ok');
+        } else {
+          setStatus('⚠️ Odpowiedź nieoczekiwana — sprawdź arkusz.', 'error');
+        }
+        showResult(code, data.imie + ' ' + data.nazwisko);
+      })
+      .catch(() => {
+        setStatus('⚠️ Błąd sieci — dane nie zostały zapisane.', 'error');
+        showResult(code, data.imie + ' ' + data.nazwisko);
+      });
+  }
+
+  function setStatus(msg, type) {
+    const el = document.getElementById('status');
+    el.textContent = msg;
+    el.className = 'status ' + (type || '');
+  }
+
+  function showResult(code, name) {
+    document.getElementById('codeDisplay').textContent = code;
+    document.getElementById('patientName').textContent = name;
+    document.getElementById('result').classList.add('show');
+  }
+
+  // ── Submit ──
+  document.getElementById('patientForm').addEventListener('submit', function(ev) {
+    ev.preventDefault();
+
+    const imie     = document.getElementById('imie').value.trim();
+    const nazwisko = document.getElementById('nazwisko').value.trim();
+
+    if (!imie || !nazwisko) {
+      setStatus('Imię i nazwisko są wymagane.', 'error');
+      return;
+    }
+
+    const kod  = document.getElementById('kod').value.trim();
+    const woj  = kodToWoj(kod) || '';
+
+    const data = {
+      imie,
+      nazwisko,
+      pesel:     document.getElementById('pesel').value.trim(),
+      data_ur:   document.getElementById('data_ur').value,
+      plec:      document.getElementById('plec').value,
+      miejsce_ur:document.getElementById('miejsce_ur').value.trim(),
+      telefon:   document.getElementById('telefon').value.trim(),
+      email:     document.getElementById('email').value.trim(),
+      kod,
+      miasto:    document.getElementById('miasto').value.trim(),
+      ulica:     document.getElementById('ulica').value.trim(),
+      nr_domu:   document.getElementById('nr_domu').value.trim(),
+      nr_lok:    document.getElementById('nr_lok').value.trim(),
+      wojewodztwo: woj,
+    };
+
+    const code = generateCode(nazwisko, imie);
+    sendToSheets(data, code);
+  });
+
+  // ── Kopiuj kod ──
+  document.getElementById('copyBtn').addEventListener('click', function() {
+    const code = document.getElementById('codeDisplay').textContent;
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(code).then(() => {
+        this.textContent = '✓ Skopiowano';
+        setTimeout(() => this.textContent = 'Kopiuj kod', 1800);
+      });
+    } else {
+      // fallback iOS
+      const ta = document.createElement('textarea');
+      ta.value = code;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      this.textContent = '✓ Skopiowano';
+      setTimeout(() => this.textContent = 'Kopiuj kod', 1800);
+    }
+  });
+
+  // ── Nowy pacjent ──
+  document.getElementById('newBtn').addEventListener('click', function() {
+    document.getElementById('result').classList.remove('show');
+    document.getElementById('patientForm').reset();
+    setStatus('', '');
+  });
+
+  document.getElementById('resetBtn').addEventListener('click', function() {
+    document.getElementById('patientForm').reset();
+    setStatus('', '');
+  });
+</script>
+
+</body>
+</html>
