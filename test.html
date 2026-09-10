@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test iPhone → Google Sheets</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; padding: 24px; max-width: 520px; margin: 0 auto; }
+    h1 { font-size: 22px; }
+    label { display: block; margin-top: 16px; font-weight: 600; }
+    input { width: 100%; font-size: 18px; padding: 12px; margin-top: 6px; box-sizing: border-box; }
+    button { width: 100%; font-size: 18px; padding: 14px; margin-top: 20px; }
+    #status { margin-top: 18px; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <h1>Test iPhone → Google Sheets</h1>
+  <p>Ten formularz nie używa fetch ani CORS. Wysyła zwykły formularz HTML bezpośrednio do Google Apps Script.</p>
+
+  <form id="testForm"
+        action="https://script.google.com/macros/s/AKfycbzNNbEaKbXlFJOHcCYlOlW73STY7pWZV4IsAIYR6lLAScOESVVngwZlTckK2T8aQHm-/exec"
+        method="POST"
+        target="gasFrame">
+
+    <label for="imie">Imię</label>
+    <input id="imie" name="imie" value="TEST" required>
+
+    <label for="nazwisko">Nazwisko</label>
+    <input id="nazwisko" name="nazwisko" value="IPHONE" required>
+
+    <button type="submit">Wyślij test</button>
+  </form>
+
+  <p id="status"></p>
+  <iframe name="gasFrame" style="display:none"></iframe>
+
+  <script>
+    const form = document.getElementById('testForm');
+    const frame = document.querySelector('iframe[name="gasFrame"]');
+    const status = document.getElementById('status');
+    let submitted = false;
+
+    form.addEventListener('submit', function () {
+      submitted = true;
+      status.textContent = 'Wysłano żądanie. Sprawdź nowy wiersz w arkuszu Google.';
+    });
+
+    frame.addEventListener('load', function () {
+      if (submitted) {
+        status.textContent = 'Żądanie zostało obsłużone. Sprawdź arkusz Google.';
+      }
+    });
+  </script>
+</body>
+</html>
