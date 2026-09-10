@@ -381,7 +381,17 @@
 
   updateGasUrlStyle();
 
+  gasUrlInput.addEventListener('input', () => {
+    localStorage.setItem('gasUrl', gasUrlInput.value.trim());
+    updateGasUrlStyle();
+  });
+
   gasUrlInput.addEventListener('change', () => {
+    localStorage.setItem('gasUrl', gasUrlInput.value.trim());
+    updateGasUrlStyle();
+  });
+
+  gasUrlInput.addEventListener('blur', () => {
     localStorage.setItem('gasUrl', gasUrlInput.value.trim());
     updateGasUrlStyle();
   });
