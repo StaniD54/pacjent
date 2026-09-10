@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Rejestracja pacjenta (2)</title>
+<title>Rejestracja pacjenta (3)</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",sans-serif;background:#f0f4f8;color:#1a2332;min-height:100vh;padding-bottom:40px}
@@ -38,15 +38,14 @@ iframe{display:none}
 </head>
 <body>
 <header>
-  <h1>Rejestracja pacjenta (2)</h1>
+  <h1>Rejestracja pacjenta (3)</h1>
   <p>prof. dr hab. S. Dąbrowiecki</p>
 </header>
 
 <div class="form-body">
 <form id="patientForm"
       action="https://script.google.com/macros/s/AKfycbzNNbEaKbXlFJOHcCYlOlW73STY7pWZV4IsAIYR6lLAScOESVVngwZlTckK2T8aQHm-/exec"
-      method="GET"
-      target="gasFrame">
+      method="GET">
 
   <div class="section">
     <div class="section-title">Dane osobowe</div>
@@ -83,7 +82,6 @@ iframe{display:none}
 </form>
 </div>
 
-<iframe name="gasFrame" id="gasFrame"></iframe>
 
 <div id="result">
   <div class="label">Kod identyfikacyjny wizyty</div>
@@ -145,31 +143,21 @@ function showResult(code,name){
   document.getElementById('result').classList.add('show');
 }
 
-let submitted=false;
-let currentCode='';
-let currentName='';
-
 document.getElementById('patientForm').addEventListener('submit',function(){
   const imie=document.getElementById('imie').value.trim();
   const nazwisko=document.getElementById('nazwisko').value.trim();
+
   if(!imie||!nazwisko)return;
 
-  currentCode=generateCode(nazwisko,imie);
-  currentName=imie+' '+nazwisko;
+  const code=generateCode(nazwisko,imie);
+  document.getElementById('kod_wizyty').value=code;
+  document.getElementById('wojewodztwo').value=
+    kodToWoj(document.getElementById('kod').value.trim());
 
-  document.getElementById('kod_wizyty').value=currentCode;
-  document.getElementById('wojewodztwo').value=kodToWoj(document.getElementById('kod').value.trim());
-
-  submitted=true;
   document.getElementById('submitBtn').disabled=true;
-  setStatus('Zapisywanie danych...','');
-});
-
-document.getElementById('gasFrame').addEventListener('load',function(){
-  if(!submitted)return;
-  submitted=false;
-  setStatus('✓ Żądanie zostało wysłane do rejestracji.','ok');
-  showResult(currentCode,currentName);
+  setStatus('Przekazywanie danych do Google Sheets...','');
+  // Nie używamy fetch() ani iframe. Przeglądarka wykona zwykły GET,
+  // dokładnie tak jak w teście, który zadziałał na iPhonie.
 });
 
 function fallbackCopy(code,button){
