@@ -33,48 +33,57 @@ button[type="submit"]:disabled{opacity:.55}
 #result .hint{font-size:13px;color:rgba(255,255,255,.5);margin-bottom:32px;line-height:1.5}
 #copyBtn{background:white;color:#1a5276;font-size:17px;font-weight:600;border:none;border-radius:12px;padding:14px 40px;cursor:pointer;margin-bottom:16px;width:100%;max-width:300px}
 #newBtn{background:transparent;color:rgba(255,255,255,.7);font-size:15px;border:1.5px solid rgba(255,255,255,.3);border-radius:12px;padding:12px 40px;cursor:pointer;width:100%;max-width:300px}
+iframe{display:none}
 </style>
 </head>
 <body>
-
 <header>
   <h1>Rejestracja pacjenta</h1>
   <p>prof. dr hab. S. Dąbrowiecki</p>
 </header>
 
 <div class="form-body">
-<form id="patientForm">
+<form id="patientForm"
+      action="https://script.google.com/macros/s/AKfycbzNNbEaKbXlFJOHcCYlOlW73STY7pWZV4IsAIYR6lLAScOESVVngwZlTckK2T8aQHm-/exec"
+      method="GET"
+      target="gasFrame">
+
   <div class="section">
     <div class="section-title">Dane osobowe</div>
-    <div class="field"><label>Imię</label><input type="text" id="imie" autocomplete="given-name" required></div>
-    <div class="field"><label>Nazwisko</label><input type="text" id="nazwisko" autocomplete="family-name" required></div>
-    <div class="field"><label>PESEL</label><input type="tel" id="pesel" maxlength="11" inputmode="numeric"></div>
+    <div class="field"><label>Imię</label><input type="text" name="imie" id="imie" placeholder="Jan" autocomplete="given-name" required></div>
+    <div class="field"><label>Nazwisko</label><input type="text" name="nazwisko" id="nazwisko" placeholder="Kowalski" autocomplete="family-name" required></div>
+    <div class="field"><label>PESEL</label><input type="tel" name="pesel" id="pesel" placeholder="00000000000" maxlength="11" inputmode="numeric"></div>
   </div>
 
   <div class="section">
     <div class="section-title">Kontakt</div>
-    <div class="field"><label>Telefon</label><input type="tel" id="telefon" autocomplete="tel"></div>
-    <div class="field"><label>Adres e-mail</label><input type="email" id="email" autocomplete="email"></div>
+    <div class="field"><label>Telefon</label><input type="tel" name="telefon" id="telefon" placeholder="600 000 000" autocomplete="tel"></div>
+    <div class="field"><label>Adres e-mail</label><input type="email" name="email" id="email" placeholder="jan@example.com" autocomplete="email"></div>
   </div>
 
   <div class="section">
     <div class="section-title">Adres zamieszkania</div>
     <div class="row-2">
-      <div class="field"><label>Kod pocztowy</label><input type="text" id="kod" maxlength="6" inputmode="numeric"></div>
-      <div class="field"><label>Miejscowość</label><input type="text" id="miasto"></div>
+      <div class="field"><label>Kod pocztowy</label><input type="text" name="kod" id="kod" placeholder="85-000" maxlength="6" inputmode="numeric"></div>
+      <div class="field"><label>Miejscowość</label><input type="text" name="miasto" id="miasto" placeholder="Bydgoszcz"></div>
     </div>
-    <div class="field"><label>Ulica</label><input type="text" id="ulica"></div>
+    <div class="field"><label>Ulica</label><input type="text" name="ulica" id="ulica" placeholder="ul. Główna"></div>
     <div class="row-2">
-      <div class="field"><label>Nr domu</label><input type="text" id="nr_domu"></div>
-      <div class="field"><label>Nr lokalu</label><input type="text" id="nr_lok"></div>
+      <div class="field"><label>Nr domu</label><input type="text" name="nr_domu" id="nr_domu" placeholder="12"></div>
+      <div class="field"><label>Nr lokalu</label><input type="text" name="nr_lok" id="nr_lok" placeholder="5"></div>
     </div>
   </div>
+
+  <input type="hidden" name="wojewodztwo" id="wojewodztwo">
+  <input type="hidden" name="kod_wizyty" id="kod_wizyty">
 
   <div class="status" id="status"></div>
   <button type="submit" id="submitBtn">Zapisz i generuj kod</button>
   <button type="button" id="resetBtn">Wyczyść formularz</button>
 </form>
 </div>
+
+<iframe name="gasFrame" id="gasFrame"></iframe>
 
 <div id="result">
   <div class="label">Kod identyfikacyjny wizyty</div>
@@ -86,8 +95,6 @@ button[type="submit"]:disabled{opacity:.55}
 </div>
 
 <script>
-const GAS_URL='https://script.google.com/macros/s/AKfycbzNNbEaKbXlFJOHcCYlOlW73STY7pWZV4IsAIYR6lLAScOESVVngwZlTckK2T8aQHm-/exec';
-
 document.getElementById('kod').addEventListener('input',function(){
   let v=this.value.replace(/\D/g,'');
   if(v.length>2)v=v.slice(0,2)+'-'+v.slice(2,5);
@@ -95,7 +102,7 @@ document.getElementById('kod').addEventListener('input',function(){
 });
 
 function kodToWoj(kod){
-  if(!/^\d{2}-\d{3}$/.test(kod))return '';
+  if(!/^\d{2}-\d{3}$/.test(kod))return'';
   const p=parseInt(kod.substring(0,2),10);
   if(p>=50&&p<=59)return'Dolnośląskie';
   if(p>=85&&p<=89)return'Kujawsko-Pomorskie';
@@ -138,64 +145,41 @@ function showResult(code,name){
   document.getElementById('result').classList.add('show');
 }
 
-async function sendToSheets(data,code){
-  const btn=document.getElementById('submitBtn');
-  btn.disabled=true;
-  setStatus('Wysyłanie danych...','');
+let submitted=false;
+let currentCode='';
+let currentName='';
 
-  const body=new URLSearchParams({...data,kod_wizyty:code});
-
-  try{
-    await fetch(GAS_URL,{
-      method:'POST',
-      mode:'no-cors',
-      cache:'no-store',
-      body:body
-    });
-
-    setStatus('✓ Dane wysłane do rejestracji.','ok');
-    showResult(code,data.imie+' '+data.nazwisko);
-  }catch(err){
-    console.error(err);
-    setStatus('⚠️ Nie udało się wysłać danych. Sprawdź połączenie z Internetem.','error');
-    btn.disabled=false;
-  }
-}
-
-document.getElementById('patientForm').addEventListener('submit',function(ev){
-  ev.preventDefault();
-
+document.getElementById('patientForm').addEventListener('submit',function(){
   const imie=document.getElementById('imie').value.trim();
   const nazwisko=document.getElementById('nazwisko').value.trim();
+  if(!imie||!nazwisko)return;
 
-  if(!imie||!nazwisko){
-    setStatus('Imię i nazwisko są wymagane.','error');
-    return;
-  }
+  currentCode=generateCode(nazwisko,imie);
+  currentName=imie+' '+nazwisko;
 
-  const kod=document.getElementById('kod').value.trim();
+  document.getElementById('kod_wizyty').value=currentCode;
+  document.getElementById('wojewodztwo').value=kodToWoj(document.getElementById('kod').value.trim());
 
-  const data={
-    imie,
-    nazwisko,
-    pesel:document.getElementById('pesel').value.trim(),
-    telefon:document.getElementById('telefon').value.trim(),
-    email:document.getElementById('email').value.trim(),
-    kod,
-    miasto:document.getElementById('miasto').value.trim(),
-    ulica:document.getElementById('ulica').value.trim(),
-    nr_domu:document.getElementById('nr_domu').value.trim(),
-    nr_lok:document.getElementById('nr_lok').value.trim(),
-    wojewodztwo:kodToWoj(kod)
-  };
-
-  sendToSheets(data,generateCode(nazwisko,imie));
+  submitted=true;
+  document.getElementById('submitBtn').disabled=true;
+  setStatus('Zapisywanie danych...','');
 });
 
-function copyFallback(code,button){
+document.getElementById('gasFrame').addEventListener('load',function(){
+  if(!submitted)return;
+  submitted=false;
+  setStatus('✓ Żądanie zostało wysłane do rejestracji.','ok');
+  showResult(currentCode,currentName);
+});
+
+function fallbackCopy(code,button){
   const ta=document.createElement('textarea');
-  ta.value=code;ta.style.position='fixed';ta.style.opacity='0';
-  document.body.appendChild(ta);ta.focus();ta.select();
+  ta.value=code;
+  ta.style.position='fixed';
+  ta.style.opacity='0';
+  document.body.appendChild(ta);
+  ta.focus();
+  ta.select();
   try{document.execCommand('copy');button.textContent='✓ Skopiowano';}
   catch(e){button.textContent='Kopiowanie nieudane';}
   document.body.removeChild(ta);
@@ -207,8 +191,10 @@ document.getElementById('copyBtn').addEventListener('click',function(){
   if(navigator.clipboard&&navigator.clipboard.writeText){
     navigator.clipboard.writeText(code)
       .then(()=>{this.textContent='✓ Skopiowano';setTimeout(()=>this.textContent='Kopiuj kod',1800);})
-      .catch(()=>copyFallback(code,this));
-  }else copyFallback(code,this);
+      .catch(()=>fallbackCopy(code,this));
+  }else{
+    fallbackCopy(code,this);
+  }
 });
 
 document.getElementById('newBtn').addEventListener('click',function(){
