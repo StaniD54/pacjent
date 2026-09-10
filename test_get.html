@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test GET iPhone → Google Sheets</title>
+  <style>
+    body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;padding:24px;max-width:520px;margin:auto}
+    input,button{width:100%;font-size:18px;padding:12px;margin-top:10px;box-sizing:border-box}
+    label{display:block;margin-top:16px;font-weight:600}
+  </style>
+</head>
+<body>
+  <h1>Test GET iPhone → Google Sheets</h1>
+  <p>Ten test używa zwykłego formularza HTML metodą GET. Bez JavaScript, bez fetch, bez CORS.</p>
+
+  <form action="https://script.google.com/macros/s/AKfycbzNNbEaKbXlFJOHcCYlOlW73STY7pWZV4IsAIYR6lLAScOESVVngwZlTckK2T8aQHm-/exec" method="GET">
+    <label>Imię</label>
+    <input name="imie" value="TEST" required>
+
+    <label>Nazwisko</label>
+    <input name="nazwisko" value="IPHONEGET" required>
+
+    <button type="submit">Wyślij test GET</button>
+  </form>
+</body>
+</html>
