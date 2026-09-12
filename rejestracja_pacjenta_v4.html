@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Rejestracja pacjenta v4</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",sans-serif;background:#f0f4f8;color:#1a2332;min-height:100vh;padding-bottom:40px}
+header{background:#1a5276;color:white;padding:18px 20px 14px;position:sticky;top:0;z-index:10;border-bottom:3px solid #2e86c1}
+header h1{font-size:18px;font-weight:700}
+header p{font-size:12px;opacity:.75;margin-top:2px}
+.form-body{padding:16px;max-width:700px;margin:0 auto}
+.section{background:white;border-radius:12px;margin-bottom:14px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.section-title{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#1a5276;padding:12px 16px 8px;border-bottom:1px solid #eaf0f6}
+.field{padding:10px 16px;border-bottom:1px solid #f0f4f8;display:flex;flex-direction:column;gap:4px}
+.field:last-child{border-bottom:none}
+.field label{font-size:11px;font-weight:600;color:#5d7a9a;text-transform:uppercase;letter-spacing:.05em}
+.field input{font-size:18px;border:none;outline:none;background:transparent;color:#1a2332;padding:4px 0;width:100%;-webkit-appearance:none}
+.field input::placeholder{color:#b0bec5}
+.row-2{display:grid;grid-template-columns:1fr 1fr}
+.row-2 .field:first-child{border-right:1px solid #f0f4f8}
+button[type="submit"]{display:block;width:100%;padding:17px;background:#1a5276;color:white;font-size:18px;font-weight:700;border:none;border-radius:12px;margin:20px 0 12px;cursor:pointer}
+button[type="submit"]:disabled{opacity:.55}
+#resetBtn{display:block;width:100%;padding:13px;background:transparent;color:#5d7a9a;font-size:16px;border:1.5px solid #c8d8e8;border-radius:12px;cursor:pointer}
+.status{font-size:13px;color:#5d7a9a;text-align:center;padding:8px;min-height:26px}
+.status.error{color:#c0392b}.status.ok{color:#1a7a4a}
+#result{display:none;position:fixed;inset:0;background:#1a5276;z-index:100;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;text-align:center}
+#result.show{display:flex}
+#result .label{font-size:14px;color:rgba(255,255,255,.7);text-transform:uppercase;letter-spacing:.1em;margin-bottom:16px}
+#result .code{font-size:36px;font-weight:800;color:white;letter-spacing:.06em;background:rgba(255,255,255,.12);padding:22px 26px;border-radius:14px;word-break:break-word;line-height:1.25;margin-bottom:14px}
+#result .patient-name{font-size:18px;color:rgba(255,255,255,.8);margin-bottom:28px}
+#result .hint{font-size:15px;color:rgba(255,255,255,.65);margin-bottom:30px;line-height:1.5}
+#copyBtn{background:white;color:#1a5276;font-size:18px;font-weight:700;border:none;border-radius:12px;padding:16px 40px;cursor:pointer;margin-bottom:16px;width:100%;max-width:320px}
+#newBtn{background:transparent;color:white;font-size:17px;border:1.5px solid rgba(255,255,255,.45);border-radius:12px;padding:14px 40px;cursor:pointer;width:100%;max-width:320px}
+@media(max-width:600px){.row-2{grid-template-columns:1fr}.row-2 .field:first-child{border-right:none}.form-body{padding:12px}#result .code{font-size:32px}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Rejestracja pacjenta</h1>
+  <p>prof. dr hab. S. Dąbrowiecki</p>
+</header>
+
+<div class="form-body">
+<form id="patientForm"
+      action="https://script.google.com/macros/s/AKfycbyTMuFHQdFWT9Jy0YKNo8SD1whE6nq30sBlA-PZgTxOF726tzPE56ifhinvuObTRQc/exec"
+      method="GET">
+
+  <div class="section">
+    <div class="section-title">Dane osobowe</div>
+    <div class="field"><label>Imię</label><input type="text" name="imie" id="imie" placeholder="Jan" autocomplete="given-name" required></div>
+    <div class="field"><label>Nazwisko</label><input type="text" name="nazwisko" id="nazwisko" placeholder="Kowalski" autocomplete="family-name" required></div>
+    <div class="field"><label>PESEL</label><input type="tel" name="pesel" id="pesel" placeholder="00000000000" maxlength="11" inputmode="numeric"></div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Kontakt</div>
+    <div class="field"><label>Telefon</label><input type="tel" name="telefon" id="telefon" placeholder="600 000 000" autocomplete="tel"></div>
+    <div class="field"><label>Adres e-mail</label><input type="email" name="email" id="email" placeholder="jan@example.com" autocomplete="email"></div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Adres zamieszkania</div>
+    <div class="row-2">
+      <div class="field"><label>Kod pocztowy</label><input type="text" name="kod" id="kod" placeholder="85-000" maxlength="6" inputmode="numeric"></div>
+      <div class="field"><label>Miejscowość</label><input type="text" name="miasto" id="miasto" placeholder="Bydgoszcz"></div>
+    </div>
+    <div class="field"><label>Ulica</label><input type="text" name="ulica" id="ulica" placeholder="ul. Główna"></div>
+    <div class="row-2">
+      <div class="field"><label>Nr domu</label><input type="text" name="nr_domu" id="nr_domu" placeholder="12"></div>
+      <div class="field"><label>Nr lokalu</label><input type="text" name="nr_lok" id="nr_lok" placeholder="5"></div>
+    </div>
+  </div>
+
+  <input type="hidden" name="wojewodztwo" id="wojewodztwo">
+  <input type="hidden" name="kod_wizyty" id="kod_wizyty">
+
+  <div class="status" id="status"></div>
+  <button type="submit" id="submitBtn">Zapisz i generuj kod</button>
+  <button type="button" id="resetBtn">Wyczyść formularz</button>
+</form>
+</div>
+
+<div id="result">
+  <div class="label">Kod pacjenta</div>
+  <div class="code" id="codeDisplay"></div>
+  <div class="patient-name" id="patientName"></div>
+  <div class="hint">Użyj tego kodu jako nazwy zdjęcia notatki i nagrania z konsultacji.</div>
+  <button id="copyBtn" type="button">Kopiuj kod</button>
+  <button id="newBtn" type="button">Następny pacjent</button>
+</div>
+
+<script>
+const CODE_ALPHABET='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+
+function randomChars(length){
+  const bytes=new Uint8Array(length);
+  if(window.crypto&&window.crypto.getRandomValues){
+    window.crypto.getRandomValues(bytes);
+    return Array.from(bytes,b=>CODE_ALPHABET[b%CODE_ALPHABET.length]).join('');
+  }
+  let out='';
+  for(let i=0;i<length;i++) out+=CODE_ALPHABET[Math.floor(Math.random()*CODE_ALPHABET.length)];
+  return out;
+}
+
+function generatePatientCode(){
+  const now=new Date();
+  const yy=String(now.getFullYear()).slice(-2);
+  const mm=String(now.getMonth()+1).padStart(2,'0');
+  const dd=String(now.getDate()).padStart(2,'0');
+  return `${yy}${mm}${dd}-${randomChars(5)}`;
+}
+
+document.getElementById('kod').addEventListener('input',function(){
+  let v=this.value.replace(/\D/g,'');
+  if(v.length>2)v=v.slice(0,2)+'-'+v.slice(2,5);
+  this.value=v;
+});
+
+function kodToWoj(kod){
+  if(!/^\d{2}-\d{3}$/.test(kod))return'';
+  const p=parseInt(kod.substring(0,2),10);
+  if(p>=50&&p<=59)return'Dolnośląskie';
+  if(p>=85&&p<=89)return'Kujawsko-Pomorskie';
+  if(p>=20&&p<=24)return'Lubelskie';
+  if(p>=65&&p<=69)return'Lubuskie';
+  if(p>=90&&p<=99)return'Łódzkie';
+  if(p>=30&&p<=34)return'Małopolskie';
+  if(p>=0&&p<=9)return'Mazowieckie';
+  if(p>=45&&p<=49)return'Opolskie';
+  if(p>=35&&p<=39)return'Podkarpackie';
+  if(p>=15&&p<=19)return'Podlaskie';
+  if(p>=80&&p<=84)return'Pomorskie';
+  if(p>=40&&p<=44)return'Śląskie';
+  if(p>=25&&p<=29)return'Świętokrzyskie';
+  if(p>=10&&p<=14)return'Warmińsko-Mazurskie';
+  if(p>=60&&p<=64)return'Wielkopolskie';
+  if(p>=70&&p<=78)return'Zachodniopomorskie';
+  return'';
+}
+
+function setStatus(msg,type){
+  const el=document.getElementById('status');
+  el.textContent=msg;
+  el.className='status '+(type||'');
+}
+
+function showResult(code,name){
+  document.getElementById('codeDisplay').textContent=code;
+  document.getElementById('patientName').textContent=name;
+  document.getElementById('result').classList.add('show');
+}
+
+function fallbackCopy(code,button){
+  const ta=document.createElement('textarea');
+  ta.value=code;
+  ta.style.position='fixed';
+  ta.style.opacity='0';
+  document.body.appendChild(ta);
+  ta.focus();
+  ta.select();
+  try{document.execCommand('copy');button.textContent='✓ Skopiowano';}
+  catch(e){button.textContent='Kopiowanie nieudane';}
+  document.body.removeChild(ta);
+  setTimeout(()=>button.textContent='Kopiuj kod',1800);
+}
+
+document.getElementById('patientForm').addEventListener('submit',function(){
+  const imie=document.getElementById('imie').value.trim();
+  const nazwisko=document.getElementById('nazwisko').value.trim();
+  if(!imie||!nazwisko)return;
+
+  const code=generatePatientCode();
+  document.getElementById('kod_wizyty').value=code;
+  document.getElementById('wojewodztwo').value=kodToWoj(document.getElementById('kod').value.trim());
+
+  document.getElementById('submitBtn').disabled=true;
+  setStatus('Przekazywanie danych do Google Sheets...','');
+
+  // Zachowujemy sprawdzony mechanizm zwykłego GET do Google Apps Script.
+  // Parametr nadal nazywa się kod_wizyty, aby nie wymagać teraz zmian w GAS/Sheets.
+});
+
+document.getElementById('copyBtn').addEventListener('click',function(){
+  const code=document.getElementById('codeDisplay').textContent;
+  if(!code)return;
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(code)
+      .then(()=>{this.textContent='✓ Skopiowano';setTimeout(()=>this.textContent='Kopiuj kod',1800);})
+      .catch(()=>fallbackCopy(code,this));
+  }else fallbackCopy(code,this);
+});
+
+document.getElementById('newBtn').addEventListener('click',function(){
+  document.getElementById('result').classList.remove('show');
+  document.getElementById('patientForm').reset();
+  document.getElementById('submitBtn').disabled=false;
+  setStatus('','');
+  setTimeout(()=>document.getElementById('imie').focus(),50);
+});
+
+document.getElementById('resetBtn').addEventListener('click',function(){
+  document.getElementById('patientForm').reset();
+  document.getElementById('submitBtn').disabled=false;
+  setStatus('','');
+  setTimeout(()=>document.getElementById('imie').focus(),50);
+});
+</script>
+</body>
+</html>
