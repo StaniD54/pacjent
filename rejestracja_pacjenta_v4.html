@@ -16,8 +16,13 @@ header p{font-size:12px;opacity:.75;margin-top:2px}
 .field{padding:10px 16px;border-bottom:1px solid #f0f4f8;display:flex;flex-direction:column;gap:4px}
 .field:last-child{border-bottom:none}
 .field label{font-size:11px;font-weight:600;color:#5d7a9a;text-transform:uppercase;letter-spacing:.05em}
-.field input{font-size:18px;border:none;outline:none;background:transparent;color:#1a2332;padding:4px 0;width:100%;-webkit-appearance:none}
+.field input,.field select{font-size:18px;border:none;outline:none;background:transparent;color:#1a2332;padding:4px 0;width:100%;-webkit-appearance:none}
 .field input::placeholder{color:#b0bec5}
+.identity-choice{display:flex;gap:10px;flex-wrap:wrap;padding-top:5px}
+.identity-choice label{display:flex;align-items:center;gap:7px;font-size:15px;font-weight:600;color:#1a5276;text-transform:none;letter-spacing:0}
+.identity-choice input{width:auto;accent-color:#1a5276}
+.field-help{font-size:12px;color:#708090;line-height:1.35}
+.hidden{display:none!important}
 .row-2{display:grid;grid-template-columns:1fr 1fr}
 .row-2 .field:first-child{border-right:1px solid #f0f4f8}
 button[type="submit"]{display:block;width:100%;padding:17px;background:#1a5276;color:white;font-size:18px;font-weight:700;border:none;border-radius:12px;margin:20px 0 12px;cursor:pointer}
@@ -51,7 +56,24 @@ button[type="submit"]:disabled{opacity:.55}
     <div class="section-title">Dane osobowe</div>
     <div class="field"><label>Imię</label><input type="text" name="imie" id="imie" placeholder="Jan" autocomplete="given-name" required></div>
     <div class="field"><label>Nazwisko</label><input type="text" name="nazwisko" id="nazwisko" placeholder="Kowalski" autocomplete="family-name" required></div>
-    <div class="field"><label>PESEL</label><input type="tel" name="pesel" id="pesel" placeholder="00000000000" maxlength="11" inputmode="numeric"></div>
+    <div class="field">
+      <label>Sposób identyfikacji</label>
+      <div class="identity-choice">
+        <label><input type="radio" name="rodzaj_id" value="PESEL" checked> Mam PESEL</label>
+        <label><input type="radio" name="rodzaj_id" value="DOKUMENT_ZAGRANICZNY"> Pacjent zagraniczny</label>
+      </div>
+    </div>
+    <div class="field" id="peselField"><label>PESEL</label><input type="tel" name="pesel" id="pesel" placeholder="00000000000" maxlength="11" inputmode="numeric"></div>
+    <div id="foreignIdentity" class="hidden">
+      <div class="field"><label>Rodzaj dokumentu</label><select name="typ_dokumentu" id="typ_dokumentu">
+        <option value="Paszport">Paszport</option>
+        <option value="Dowód osobisty">Dowód osobisty</option>
+        <option value="Karta pobytu">Karta pobytu</option>
+        <option value="Inny dokument">Inny dokument</option>
+      </select></div>
+      <div class="field"><label>Numer dokumentu / identyfikator</label><input type="text" name="numer_dokumentu" id="numer_dokumentu" placeholder="Numer dokumentu" maxlength="40" autocomplete="off"></div>
+      <div class="field"><label>Kraj wydania dokumentu</label><input type="text" name="kraj_dokumentu" id="kraj_dokumentu" placeholder="np. Niemcy" maxlength="60" autocomplete="country-name"></div>
+    </div>
   </div>
 
   <div class="section">
@@ -62,8 +84,9 @@ button[type="submit"]:disabled{opacity:.55}
 
   <div class="section">
     <div class="section-title">Adres zamieszkania</div>
+    <div class="field"><label>Kraj</label><input type="text" name="kraj" id="kraj" value="Polska" placeholder="Polska" maxlength="60" autocomplete="country-name"></div>
     <div class="row-2">
-      <div class="field"><label>Kod pocztowy</label><input type="text" name="kod" id="kod" placeholder="85-000" maxlength="6" inputmode="numeric"></div>
+      <div class="field"><label>Kod pocztowy</label><input type="text" name="kod" id="kod" placeholder="85-000" maxlength="16" autocomplete="postal-code"></div>
       <div class="field"><label>Miejscowość</label><input type="text" name="miasto" id="miasto" placeholder="Bydgoszcz"></div>
     </div>
     <div class="field"><label>Ulica</label><input type="text" name="ulica" id="ulica" placeholder="ul. Główna"></div>
@@ -112,10 +135,30 @@ function generatePatientCode() {
   return `${mm}${dd}-${randomChars(3)}`;
 }
 
+function isForeignPatient(){
+  return document.querySelector('input[name="rodzaj_id"]:checked').value==='DOKUMENT_ZAGRANICZNY';
+}
+
+function updateIdentityMode(){
+  const foreign=isForeignPatient();
+  document.getElementById('peselField').classList.toggle('hidden',foreign);
+  document.getElementById('foreignIdentity').classList.toggle('hidden',!foreign);
+  document.getElementById('pesel').required=!foreign;
+  document.getElementById('numer_dokumentu').required=foreign;
+  document.getElementById('kraj_dokumentu').required=foreign;
+  if(foreign&&document.getElementById('kraj').value.trim()==='Polska')document.getElementById('kraj').value='';
+  if(!foreign&&!document.getElementById('kraj').value.trim())document.getElementById('kraj').value='Polska';
+}
+
+document.querySelectorAll('input[name="rodzaj_id"]').forEach(el=>el.addEventListener('change',updateIdentityMode));
+
 document.getElementById('kod').addEventListener('input',function(){
-  let v=this.value.replace(/\D/g,'');
-  if(v.length>2)v=v.slice(0,2)+'-'+v.slice(2,5);
-  this.value=v;
+  const country=document.getElementById('kraj').value.trim().toLowerCase();
+  if(country==='polska'||country==='poland'){
+    let v=this.value.replace(/\D/g,'');
+    if(v.length>2)v=v.slice(0,2)+'-'+v.slice(2,5);
+    this.value=v;
+  }
 });
 
 function kodToWoj(kod){
@@ -166,10 +209,21 @@ function fallbackCopy(code,button){
   setTimeout(()=>button.textContent='Kopiuj kod',1800);
 }
 
-document.getElementById('patientForm').addEventListener('submit',function(){
+document.getElementById('patientForm').addEventListener('submit',function(event){
   const imie=document.getElementById('imie').value.trim();
   const nazwisko=document.getElementById('nazwisko').value.trim();
   if(!imie||!nazwisko)return;
+
+  if(!isForeignPatient()&&!/^\d{11}$/.test(document.getElementById('pesel').value.trim())){
+    event.preventDefault();
+    setStatus('Wpisz prawidłowy, 11-cyfrowy numer PESEL.','error');
+    return;
+  }
+  if(isForeignPatient()&&(!document.getElementById('numer_dokumentu').value.trim()||!document.getElementById('kraj_dokumentu').value.trim())){
+    event.preventDefault();
+    setStatus('Wpisz numer dokumentu oraz kraj jego wydania.','error');
+    return;
+  }
 
   const code=generatePatientCode();
   document.getElementById('kod_wizyty').value=code;
@@ -206,6 +260,9 @@ document.getElementById('resetBtn').addEventListener('click',function(){
   setStatus('','');
   setTimeout(()=>document.getElementById('imie').focus(),50);
 });
+
+updateIdentityMode();
 </script>
 </body>
 </html>
+
