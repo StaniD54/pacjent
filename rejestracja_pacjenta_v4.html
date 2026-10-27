@@ -43,7 +43,7 @@ button[type="submit"]:disabled{opacity:.55}
 </head>
 <body>
 <header>
-  <h1>Rejestracja pacjenta — ver.: 14.09.2026</h1>
+  <h1>Rejestracja pacjenta — ver.: 27.10.2026</h1>
   <p>prof. dr hab. S. Dąbrowiecki</p>
 </header>
 
@@ -54,12 +54,13 @@ button[type="submit"]:disabled{opacity:.55}
 
   <div class="section">
     <div class="section-title">Dane osobowe</div>
+    <div class="field"><p class="field-help">Do rejestracji wystarczą imię i nazwisko. PESEL, dane dokumentu, kontakt i adres można pozostawić puste.</p></div>
     <div class="field"><label>Imię</label><input type="text" name="imie" id="imie" placeholder="Jan" autocomplete="given-name" required></div>
     <div class="field"><label>Nazwisko</label><input type="text" name="nazwisko" id="nazwisko" placeholder="Kowalski" autocomplete="family-name" required></div>
     <div class="field">
       <label>Sposób identyfikacji</label>
       <div class="identity-choice">
-        <label><input type="radio" name="rodzaj_id" value="PESEL" checked> Mam PESEL</label>
+        <label><input type="radio" name="rodzaj_id" value="PESEL" checked> PESEL (jeśli znany)</label>
         <label><input type="radio" name="rodzaj_id" value="DOKUMENT_ZAGRANICZNY"> Pacjent zagraniczny</label>
       </div>
     </div>
@@ -143,9 +144,9 @@ function updateIdentityMode(){
   const foreign=isForeignPatient();
   document.getElementById('peselField').classList.toggle('hidden',foreign);
   document.getElementById('foreignIdentity').classList.toggle('hidden',!foreign);
-  document.getElementById('pesel').required=!foreign;
-  document.getElementById('numer_dokumentu').required=foreign;
-  document.getElementById('kraj_dokumentu').required=foreign;
+  document.getElementById('pesel').required=false;
+  document.getElementById('numer_dokumentu').required=false;
+  document.getElementById('kraj_dokumentu').required=false;
   if(foreign&&document.getElementById('kraj').value.trim()==='Polska')document.getElementById('kraj').value='';
   if(!foreign&&!document.getElementById('kraj').value.trim())document.getElementById('kraj').value='Polska';
 }
@@ -214,14 +215,10 @@ document.getElementById('patientForm').addEventListener('submit',function(event)
   const nazwisko=document.getElementById('nazwisko').value.trim();
   if(!imie||!nazwisko)return;
 
-  if(!isForeignPatient()&&!/^\d{11}$/.test(document.getElementById('pesel').value.trim())){
+  const pesel=document.getElementById('pesel').value.trim();
+  if(!isForeignPatient()&&pesel&&!/^\d{11}$/.test(pesel)){
     event.preventDefault();
     setStatus('Wpisz prawidłowy, 11-cyfrowy numer PESEL.','error');
-    return;
-  }
-  if(isForeignPatient()&&(!document.getElementById('numer_dokumentu').value.trim()||!document.getElementById('kraj_dokumentu').value.trim())){
-    event.preventDefault();
-    setStatus('Wpisz numer dokumentu oraz kraj jego wydania.','error');
     return;
   }
 
@@ -249,6 +246,7 @@ document.getElementById('copyBtn').addEventListener('click',function(){
 document.getElementById('newBtn').addEventListener('click',function(){
   document.getElementById('result').classList.remove('show');
   document.getElementById('patientForm').reset();
+  updateIdentityMode();
   document.getElementById('submitBtn').disabled=false;
   setStatus('','');
   setTimeout(()=>document.getElementById('imie').focus(),50);
@@ -256,6 +254,7 @@ document.getElementById('newBtn').addEventListener('click',function(){
 
 document.getElementById('resetBtn').addEventListener('click',function(){
   document.getElementById('patientForm').reset();
+  updateIdentityMode();
   document.getElementById('submitBtn').disabled=false;
   setStatus('','');
   setTimeout(()=>document.getElementById('imie').focus(),50);
